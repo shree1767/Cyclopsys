@@ -32,7 +32,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Cyclopsys',
-      theme: ThemeData(scaffoldBackgroundColor: Color(0xFF111915)),
+      theme: ThemeData(scaffoldBackgroundColor: const Color(0xFF111915)),
       home: const MyHomePage(),
     );
   }

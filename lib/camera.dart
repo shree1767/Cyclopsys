@@ -6,6 +6,7 @@ class CameraPage extends StatefulWidget {
   const CameraPage({super.key});
 
   @override
+  // ignore: library_private_types_in_public_api
   _CameraPageState createState() => _CameraPageState();
 }
 
@@ -21,9 +22,9 @@ class _CameraPageState extends State<CameraPage> {
             fontSize: 16,
           ),
         ),
-        iconTheme: IconThemeData(color: Colors.white),
+        iconTheme: const IconThemeData(color: Colors.white),
         centerTitle: true,
-        backgroundColor: Color(0xFF111915),
+        backgroundColor: const Color(0xFF111915),
       ),
       body: CameraAwesomeBuilder.awesome(
         saveConfig: SaveConfig.photo(),
