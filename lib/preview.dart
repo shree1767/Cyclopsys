@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
+import 'package:flutter_tts/flutter_tts.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 
 class PreviewPage extends StatefulWidget {
@@ -8,33 +9,65 @@ class PreviewPage extends StatefulWidget {
   const PreviewPage({super.key, required this.imagePath});
 
   @override
-  // ignore: library_private_types_in_public_api
   _PreviewPageState createState() => _PreviewPageState();
 }
 
 class _PreviewPageState extends State<PreviewPage> {
   String text = "";
+  late FlutterTts flutterTts;
 
   @override
   void initState() {
     super.initState();
+    flutterTts = FlutterTts();
     getImageToText();
   }
 
+  // Speak the extracted text
+Future<void> _speakText() async {
+  if (text.isNotEmpty) {
+    try {
+      // Remove punctuation and other symbols from the extracted text
+      final cleanedText = text.replaceAll(RegExp(r'[^\w\s]'), '');
+
+      // Ensure the text is not empty after cleaning
+      if (cleanedText.isNotEmpty) {
+        await flutterTts.setLanguage('en-US');
+        await flutterTts.setPitch(1.0);
+        await flutterTts.setSpeechRate(0.5);
+        await flutterTts.speak(cleanedText);
+      } else {
+        print("No valid text to speak after cleaning.");
+      }
+    } catch (e) {
+      print("Error while trying to speak text: $e");
+    }
+  } else {
+    print("No text available to speak.");
+  }
+}
+
   // OCR Text extraction
   Future<void> getImageToText() async {
-    final textRecognizer = TextRecognizer(script: TextRecognitionScript.latin);
-    final RecognizedText recognizedText = 
-      await textRecognizer.processImage(InputImage.fromFilePath(widget.imagePath));
+    try {
+      final textRecognizer = TextRecognizer(script: TextRecognitionScript.latin);
+      final RecognizedText recognizedText =
+          await textRecognizer.processImage(InputImage.fromFilePath(widget.imagePath));
 
-    setState(() {
-      text = recognizedText.text;
-    });
+      setState(() {
+        text = recognizedText.text;
+      });
 
-    _showTextPopup();
+      _showTextPopup();
+    } catch (e) {
+      print("Error during OCR: $e");
+      setState(() {
+        text = 'Error occurred while recognizing text.';
+      });
+    }
   }
 
-  // To be removed after TTS implementation
+  // Popup with a TTS option
   void _showTextPopup() {
     showDialog(
       context: context,
@@ -51,12 +84,24 @@ class _PreviewPageState extends State<PreviewPage> {
               },
               child: const Text('Close'),
             ),
+            TextButton(
+              onPressed: () {
+                _speakText(); // Call TTS to speak the text
+              },
+              child: const Text('Speak Text'),
+            ),
           ],
         );
       },
     );
   }
-  //
+
+  @override
+  void dispose() {
+    flutterTts.stop(); // Stop TTS when the page is disposed
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -64,7 +109,7 @@ class _PreviewPageState extends State<PreviewPage> {
         title: const Text(
           'Preview Image',
           style: TextStyle(
-            color: Colors.white, 
+            color: Colors.white,
             fontSize: 16,
           ),
         ),
